@@ -18,6 +18,8 @@ def split_dataset(dataset, train_ratio=0.8, val_ratio=0.1):
     train_size = int(total_size * train_ratio)
     val_size = int(total_size * val_ratio)
     test_size = total_size - train_size - val_size
+    # shuffle the dataset
+    dataset = torch.utils.data.Subset(dataset, torch.randperm(total_size))
     return torch.utils.data.random_split(dataset, [train_size, val_size, test_size])
 
 
