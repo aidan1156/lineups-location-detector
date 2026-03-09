@@ -1,3 +1,7 @@
+from torch.utils.data import Dataset
+from PIL import Image
+import pandas as pd
+
 class LineupDataset(Dataset):
     def __init__(self, map_name, transform=None):
         """
