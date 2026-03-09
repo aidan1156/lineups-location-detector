@@ -22,10 +22,10 @@ class ResnetBlock(nn.Module):
             self.shortcut = nn.Identity()
 
     def forward(self, x):
-        x = self.main_branch(x)
-        x += self.shortcut(x)
-        x = F.leaky_relu(x, inplace=True)
-        return x
+        out = self.main_branch(x)
+        out += self.shortcut(x)
+        out = F.leaky_relu(out, inplace=True)
+        return out
     
 class Resnet(nn.Module):
     def __init__(self, num_classes):

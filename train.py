@@ -4,7 +4,6 @@ from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import random
 from PIL import Image, ImageEnhance
-import matplotlib.pyplot as plt
 from model import Resnet
 from dataset import LineupDataset
 
