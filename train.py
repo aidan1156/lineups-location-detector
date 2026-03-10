@@ -5,7 +5,7 @@ import numpy as np
 import random
 from PIL import Image, ImageEnhance
 from model import Resnet
-from dataset import LineupDataset
+from dataset import LineupDataset, TransformedSubset
 
 # set seed for everything
 seed = 42
@@ -22,21 +22,6 @@ def split_dataset(dataset, train_ratio=0.8, val_ratio=0.1):
     # shuffle the dataset
     dataset = torch.utils.data.Subset(dataset, torch.randperm(total_size))
     return torch.utils.data.random_split(dataset, [train_size, val_size, test_size])
-
-
-class TransformedSubset(Dataset):
-    def __init__(self, subset, transform=None):
-        self.subset = subset
-        self.transform = transform
-
-    def __len__(self):
-        return len(self.subset)
-
-    def __getitem__(self, idx):
-        image, label = self.subset[idx]
-        if self.transform:
-            image = self.transform(image)
-        return image, label
 
 
 def pil_to_tensor(image):
@@ -165,7 +150,7 @@ for epoch in range(num_epochs):
             outputs = model(images)
             accuracy = (outputs.argmax(dim=1) == labels).float().mean()
     
-    if accuracy > best_model_accuracy:
+    if accuracy >= best_model_accuracy:
         best_model = model.state_dict()
         best_model_accuracy = accuracy
         best_model_accuracy_at_epoch = epoch
@@ -177,3 +162,24 @@ for epoch in range(num_epochs):
         break
 
     print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {avg_loss:.4f}, validation accuracy: {accuracy}')
+
+
+# evaluate on test set
+model.load_state_dict(best_model)
+model.eval()
+with torch.no_grad():
+    total_loss = 0
+    preds = []
+    labels_full = []
+    for images, labels in test_dataloader:
+        images = images.to(device)
+        labels = labels.to(device)
+        
+        outputs = model(images)
+        preds.extend(outputs.argmax(dim=1).cpu().numpy())
+        labels_full.extend(labels.cpu().numpy())
+
+    preds = np.array(preds)
+    labels_full = np.array(labels_full)
+    test_accuracy = (preds == labels_full).mean()
+    print(f'Test accuracy: {test_accuracy:.4f}')
