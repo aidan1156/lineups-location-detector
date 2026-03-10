@@ -36,12 +36,15 @@ def predict_image(model, image_path, transform, idx_to_label, device):
 	with torch.no_grad():
 		logits = model(tensor)
 		probs = torch.softmax(logits, dim=1)
-		confidence, pred_idx = torch.max(probs, dim=1)
+		top_k = min(10, probs.shape[1])
+		top_confidences, top_indices = torch.topk(probs, k=top_k, dim=1)
 
-	pred_idx = int(pred_idx.item())
-	confidence = float(confidence.item())
-	pred_label = idx_to_label[pred_idx]
-	return pred_label, confidence
+	results = []
+	for confidence, pred_idx in zip(top_confidences[0], top_indices[0]):
+		label = idx_to_label[int(pred_idx.item())]
+		results.append((label, float(confidence.item())))
+
+	return results
 
 
 def main():
@@ -68,14 +71,16 @@ def main():
 			continue
 
 		try:
-			label, confidence = predict_image(
+			predictions = predict_image(
 				model=model,
 				image_path=image_path,
 				transform=transform,
 				idx_to_label=dataset.idx_to_label,
 				device=device,
 			)
-			print(f"Prediction: {label} ({confidence * 100:.2f}% confidence)")
+			print("Top predictions:")
+			for rank, (label, confidence) in enumerate(predictions, start=1):
+				print(f"{rank:2d}. {label} - {confidence * 100:.2f}%")
 		except Exception as exc:
 			print(f"Could not process '{image_path}': {exc}")
 
