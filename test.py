@@ -1,9 +1,9 @@
 # Load the best model and run inference on image paths entered in the terminal.
 from pathlib import Path
 
-import numpy as np
 import torch
 from PIL import Image
+import time
 
 from model import Resnet
 from dataset import LineupDataset, EvalTransform
@@ -71,6 +71,7 @@ def main():
 			continue
 
 		try:
+			start_time = time.perf_counter()
 			predictions = predict_image(
 				model=model,
 				image_path=image_path,
@@ -78,6 +79,9 @@ def main():
 				idx_to_label=dataset.idx_to_label,
 				device=device,
 			)
+			end_time = time.perf_counter()
+			inference_time = end_time - start_time
+			print(f"Inference time: {inference_time:.4f} seconds")
 			print("Top predictions:")
 			for rank, (label, confidence) in enumerate(predictions, start=1):
 				print(f"{rank:2d}. {label} - {confidence * 100:.2f}%")
