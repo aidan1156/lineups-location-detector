@@ -27,10 +27,10 @@ def split_dataset(dataset, train_ratio=0.8, val_ratio=0.1):
 
 
 
-MAP_NAME = 'Ascent'
+MAP_NAME = None#'Ascent'
 
-train_transform = TrainTransform(output_size=(384, 216))
-eval_transform = EvalTransform(output_size=(384, 216))
+train_transform = TrainTransform(output_size=(135, 64))
+eval_transform = EvalTransform(output_size=(135, 64))
 
 full_dataset = LineupDataset(MAP_NAME, transform=None)
 train_dataset, val_dataset, test_dataset = split_dataset(full_dataset)

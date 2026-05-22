@@ -1,4 +1,4 @@
-from random import random
+import random
 import torch
 from torch.utils.data import Dataset
 from PIL import Image
@@ -15,15 +15,19 @@ class LineupDataset(Dataset):
             map_name: Name of the map to filter by (e.g., 'Ascent', 'Split')
             transform: Optional transform to apply to images
         """
-        self.map_name = map_name
         self.transform = transform
         self.data = []
         
         lineups_df = pd.read_csv('dataset/lineups.csv')
         
-        lineups_df = lineups_df[lineups_df['map'] == map_name]
-        
-        callouts_df = pd.read_csv(f'dataset/callouts/{map_name}.csv', header=None)
+        if map_name:
+            lineups_df = lineups_df[lineups_df['map'] == map_name]
+            callouts_df = pd.read_csv(f'dataset/callouts/{map_name}.csv', header=None)
+        else:
+            import glob
+            callout_files = glob.glob('dataset/callouts/*.csv')
+            callouts_df = pd.concat([pd.read_csv(f, header=None) for f in callout_files], ignore_index=True)
+            
         valid_callouts = set(callouts_df[0].values)
         
         for _, row in lineups_df.iterrows():

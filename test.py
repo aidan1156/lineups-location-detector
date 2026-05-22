@@ -53,7 +53,7 @@ def main():
 	model_path = model_path_input if model_path_input else None
 
 	model, dataset, device = load_model(map_name=map_name, model_path=model_path)
-	transform = EvalTransform(output_size=(384, 216))
+	transform = EvalTransform(output_size=(135, 64))
 
 	print(f"Loaded model for map '{map_name}' on {device}.")
 	print("Enter image paths one-by-one. Type 'q' to quit.")
