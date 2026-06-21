@@ -1,0 +1,2 @@
+These json files define the mapping of in game callout text to LineupsValorant callouts. 
+Run `generate_models.py` to sync the models pushed the gemini with the `.json` definitions
