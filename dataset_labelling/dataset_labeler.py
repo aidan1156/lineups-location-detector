@@ -2,6 +2,9 @@
 Take each image in the dataset and use gemini to label it with an in game callout
 """
 
+import glob
+from pathlib import Path
+
 import pandas as pd
 import base64
 import json
@@ -9,7 +12,6 @@ import time
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
-from response_models import map_models
 
 load_dotenv()
 
@@ -23,30 +25,51 @@ labels_prompt = """Analyse this image, does it contain one of the pieces of text
 def encode_image_base64(image_path: str) -> str:
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode('utf-8')
+    
+map_callouts = {}
+for map_name in glob.glob('dataset_labelling/callout_conversion/*.json'):
+    map_name = Path(map_name).stem
+    with open(f'dataset_labelling/callout_conversion/{map_name}.json', 'r') as f:
+        callouts = list(json.load(f).keys())
+    map_callouts[map_name] = callouts
 
 print("Creating JSONL batch request file with Structured Output schemas...")
 with open(jsonl_filename, "w") as f:
     lineups_df = pd.read_csv('dataset/lineups.csv')
     for idx, row in lineups_df.iterrows():
+        # skip maps that don't have a schema properly defined yet
+        if row["map"] not in {"Ascent", "Bind"}:
+            continue
         try:
             img_path = f'dataset/images/{row["id"]}.webp'
-            result_schema = map_models[row["map"]].model_json_schema()
+            map_callout = map_callouts[row["map"]]
             b64_data = encode_image_base64(img_path)
             
             payload = {
-                "key": f"image_task_{idx}",
+                "id": f"image_task_{row['id']}",
                 "request": {
-                    "model": model_name,
                     "contents": [{
+                        "role": "user",
                         "parts": [
                             {"text": labels_prompt},
-                            {"inline_data": {"mime_type": "image/jpeg", "data": b64_data}}
+                            {"inline_data": {"mime_type": "image/webp", "data": b64_data}}
                         ]
                     }],
                     # This config object enforces the structured JSON output per request
-                    "config": {
-                        "response_mime_type": "application/json",
-                        "response_schema": result_schema
+                    "generationConfig": {
+                        "responseMimeType": "application/json",
+                        "responseSchema": {
+                            "type": "OBJECT",
+                            "properties": {
+                                "text": {
+                                    "type": "STRING",
+                                    "description": "The text in the image. Must be one of the specified options.",
+                                    "enum": map_callout,
+                                    "nullable": True
+                                },
+                            },
+                            "required": ["text"]
+                        }
                     }
                 }
             }
@@ -54,7 +77,6 @@ with open(jsonl_filename, "w") as f:
         except Exception as e:
             print(f"Skipping {img_path}: {e}")
 
-# stop here for now
 exit(0)
 
 # 2. Upload to File API

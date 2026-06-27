@@ -1,4 +1,24 @@
 {
-    "A Site": ["A Site", "A Front"],
-    "B Site": ["B Site", "B Main"]
+    "Defender Side Spawn": ["Defenders"],
+    "A Rafters": ["A Rafters"],
+    "A Window": ["A Window"],
+    "A Garden": ["A Garden"],
+    "A Tree": ["A Link"],
+    "A Site": ["A Site", "A Front", "A Generator"],
+    "A Wine": ["A Wine"],
+    "A Main": ["A Main"],
+    "A Lobby": ["A Lobby"],
+    "Mid Top": ["Mid Top"],
+    "Mid Catwalk": ["Mid Catwalk"],
+    "Mid Courtyard": ["Mid Courtyard"],
+    "Mid Cubby": ["Mid Cubby"],
+    "Mid Bottom": ["Mid Bottom"],
+    "Mid Market": ["Mid Market"],
+    "Mid Pizza": ["Mid Pizza"],
+    "Mid Link": ["Mid Link"],
+    "B Boat House": ["B Back"],
+    "B Site": ["B Site", "B Front", "Boathouse", "B Lane"],
+    "B Main": ["B Main"],
+    "B Lobby": ["B Lobby"],
+    "Attacker Side Spawn": ["Attackers"]
 }

@@ -1,4 +1,26 @@
 {
-    "A Site": ["A Site", "A Front"],
-    "B Site": ["B Site", "B Main"]
+    "Defender Side Spawn": ["Defenders", "A Vents"],
+    "A Tower": ["A Tower"],
+    "A Site": ["A Truck", "A Boxes", "A Gate", "Wood Box"],
+    "A Lamps": ["A Lamps"],
+    "A Teleporter": ["A Teleporter"],
+    "A Short": ["A Cubby", "A Short"],
+    "A Cubby": ["A Cubby"],
+    "A Lobby": ["A Lobby"],
+    "A Exit": ["A Exit"],
+    "A Bath": ["A Showers"],
+    "A Link": ["A Link"],
+    "B Link": ["B Link"],
+    "B Short": ["B Short"],
+    "B Exit": ["B Exit"],
+    "B Window": ["B Window"],
+    "B Site": ["B Site", "B Front"],
+    "B Elbow": ["B Elbow"],
+    "B Hall": ["B Hall"],
+    "B Garden": ["B Garden"],
+    "B Teleporter": ["B Teleporter"],
+    "B Long": ["B Long"],
+    "B Fountain": ["B Lobby"],
+    "Attacker Side Cave": ["Cave"],
+    "Attacker Side Spawn": ["Attackers"]
 }
