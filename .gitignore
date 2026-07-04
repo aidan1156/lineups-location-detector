@@ -2,5 +2,6 @@ __pycache__/
 *.pyc
 .venv/
 dataset/
+text-dataset/
 hidden/
 .env

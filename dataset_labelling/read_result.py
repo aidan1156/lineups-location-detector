@@ -1,4 +1,3 @@
-import time
 import json
 from google import genai
 from google.genai import types
@@ -29,6 +28,17 @@ if batch_job.state == types.JobState.JOB_STATE_SUCCEEDED:
     
     with open("hidden/batch_results.jsonl", "w") as f:
         f.write(file_content)
+
+    with open("dataset/lineups-in-game-callout.csv", "w") as f:
+        f.write("id,prediction\n")
+        for line in file_content.splitlines():
+            data = json.loads(line)
+            raw_text = data["response"]["candidates"][0]["content"]["parts"][0]["text"]
+            pred_json = json.loads(raw_text)
+            prediction = str(pred_json["text"])
+
+            f.write(f"{int(data['id'].replace('image_task_', '')) + 1},{prediction}\n")
+
 
 else:
     print(f"Job is not finished. State: {batch_job.state.name}")

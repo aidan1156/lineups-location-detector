@@ -6,7 +6,7 @@ from PIL import Image
 import time
 
 from model import Resnet
-from dataset import LineupDataset, EvalTransform
+from fullscreen_detection.dataset import LineupDataset, EvalTransform
 
 def load_model(map_name, model_path=None, device=None):
 	if device is None:

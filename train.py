@@ -1,120 +1,155 @@
-import torch.nn as nn
 import torch
-from torch.utils.data import Dataset, DataLoader
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torch.utils.data import DataLoader
+from torch.utils.data import WeightedRandomSampler
+from torch.optim.lr_scheduler import LinearLR, CosineAnnealingWarmRestarts, SequentialLR
+from torchvision import datasets, transforms
+from torchvision.utils import save_image, make_grid
+#other
+import matplotlib.pyplot as plt
 import numpy as np
+import copy
+import json
+import os
 
 from model import Resnet
-from dataset import LineupDataset, TransformedSubset, EvalTransform, TrainTransform
 
-# set seed for everything
-seed = 42
-torch.manual_seed(seed)
-torch.cuda.manual_seed_all(seed)
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
-    
-def split_dataset(dataset, train_ratio=0.8, val_ratio=0.1):
-    total_size = len(dataset)
-    train_size = int(total_size * train_ratio)
-    val_size = int(total_size * val_ratio)
-    test_size = total_size - train_size - val_size
-    # shuffle the dataset
-    dataset = torch.utils.data.Subset(dataset, torch.randperm(total_size))
-    return torch.utils.data.random_split(dataset, [train_size, val_size, test_size])
+torch.manual_seed(67)
 
+transform = transforms.Compose(
+        [
+            transforms.RandomAffine(
+                translate=(0.1, 0.1),
+                scale=(1, 1.2),
+                interpolation=transforms.InterpolationMode.BILINEAR
+            ),
+            transforms.Resize(256),
+            transforms.CenterCrop(256),
+            transforms.ToTensor(),
+        ]
+    )
 
+train_path = 'text-dataset/train'
+test_path = 'text-dataset/test'
+val_path = 'text-dataset/val'
 
+train_dataset = datasets.ImageFolder(train_path, transform=transform)
+test_dataset = datasets.ImageFolder(test_path, transform=transform)
+val_dataset = datasets.ImageFolder(val_path, transform=transform)
 
+train_targets = torch.tensor(train_dataset.targets)
+# Get class counts from these specific targets
+# Use torch.unique to count occurrences of each class in the training split
+classes, class_counts = torch.unique(train_targets, return_counts=True)
+class_weights = 1. / class_counts.float()
+# Map the weights to every sample in the training subset
+sample_weights = class_weights[train_targets]
 
+train_sampler = WeightedRandomSampler(
+    weights=sample_weights,
+    num_samples=len(sample_weights),
+    replacement=True
+)
+print(len(train_dataset), len(val_dataset), len(test_dataset))
 
-MAP_NAME = None#'Ascent'
+def get_num_workers():
+    suggested_workers = 0
+    if hasattr(os, 'sched_getaffinity'):
+        try:
+            suggested_workers = len(os.sched_getaffinity(0))
+        except Exception:
+            pass
+    if suggested_workers == 0:
+        cpu_count = os.cpu_count()
+        if cpu_count is not None:
+            suggested_workers = cpu_count
+    num_workers = min(8, suggested_workers)
+    return num_workers
 
-train_transform = TrainTransform(output_size=(135, 64))
-eval_transform = EvalTransform(output_size=(135, 64))
+def check_accuracy(loader: DataLoader, model: Resnet):
+    num_correct = 0
+    num_samples = 0
+    model.eval()
 
-full_dataset = LineupDataset(MAP_NAME, transform=None)
-train_dataset, val_dataset, test_dataset = split_dataset(full_dataset)
+    with torch.no_grad():
+        for x, y in loader:
+            x = x.to(device=device, dtype=torch.dtype)
+            y = y.to(device=device, dtype=torch.long)
 
-train_dataset = TransformedSubset(train_dataset, transform=train_transform)
-val_dataset = TransformedSubset(val_dataset, transform=eval_transform)
-test_dataset = TransformedSubset(test_dataset, transform=eval_transform)
+            scores = model(x)
+            _, predictions = scores.max(1)
+            num_correct += (predictions == y).sum()
+            num_samples += predictions.size(0)
 
-print(f"Train size: {len(train_dataset)}, Val size: {len(val_dataset)}, Test size: {len(test_dataset)}")
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-train_dataloader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-test_dataloader = DataLoader(test_dataset, batch_size=32, shuffle=False)
-val_dataloader = DataLoader(val_dataset, batch_size=32, shuffle=False)
-
-model = Resnet(num_classes=full_dataset.get_num_classes()).to(device)
-criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-
-best_model = None
-best_model_accuracy = 0
-best_model_accuracy_at_epoch = 0
-patience = 5
-
-num_epochs = 200
-for epoch in range(num_epochs):
     model.train()
-    
-    total_loss = 0.0
-    for images, labels in train_dataloader:
-        images = images.to(device)
-        labels = labels.to(device)
-        
-        outputs = model(images)
-        loss = criterion(outputs, labels)
-        
+    return float(num_correct) / float(num_samples) * 100
+
+max_epochs = 100
+batch_size = 128
+num_workers = get_num_workers()
+
+
+loader_train = DataLoader(train_dataset, batch_size=batch_size, sampler=train_sampler, num_workers=num_workers)
+loader_val = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+loader_test = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+
+
+if torch.cuda.is_available():
+    device = torch.device('cuda:0')
+else:
+    device = torch.device('cpu')
+dtype = torch.float32
+
+num_classes = len(train_dataset.classes)
+
+model = Resnet(num_classes)
+optimizer = optim.Adamax(model.parameters(), lr=0.001, weight_decay=1e-4)
+scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max_epochs, eta_min=1e-6)
+
+model = model.to(device=device)  # move the model parameters to CPU/GPU
+for e in range(max_epochs):
+    # if no improvement in 10 consecutive epochs stop training
+    if best_accuracy_epoch + 10 <= e:
+        print(f'Early stopping at epoch {e} with best accuracy {best_accuracy:.2f} at epoch {best_accuracy_epoch}')
+        model.load_state_dict(best_model_state)
+        break
+    for t, (x, y) in enumerate(loader_train):
+        model.train()  # put model to training mode
+        x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
+        y = y.to(device=device, dtype=torch.long)
+
+        scores = model(x)
+        loss = F.cross_entropy(scores, y)
+
+        # Zero out all of the gradients for the variables which the optimizer
+        # will update.
         optimizer.zero_grad()
+
         loss.backward()
+
+        # Update the parameters of the model using the gradients
         optimizer.step()
 
-        total_loss += loss.item()
-
-    avg_loss = total_loss / len(train_dataloader)
-
-    model.eval()
-    with torch.no_grad():
-        total_loss = 0
-        for images, labels in val_dataloader:
-            images = images.to(device)
-            labels = labels.to(device)
+        if t % 1000 == 0:
+            print('Epoch: %d, Iteration %d, loss = %.4f' % (e, t, loss.item()))
             
-            outputs = model(images)
-            accuracy = (outputs.argmax(dim=1) == labels).float().mean()
+    scheduler.step()
+    print("LR now is ", optimizer.param_groups[0]["lr"])
     
-    if accuracy >= best_model_accuracy:
-        best_model = model.state_dict()
-        best_model_accuracy = accuracy
-        best_model_accuracy_at_epoch = epoch
+    accuracy = check_accuracy(loader_val, model)
+    if accuracy > best_accuracy:
+        best_accuracy = accuracy
+        best_accuracy_epoch = e
+        best_model_state = copy.deepcopy(model.state_dict())
 
-        # save the best model
-        torch.save(best_model, f"models/best_model_{MAP_NAME}.pth")
-    elif epoch - best_model_accuracy_at_epoch >= patience:
-        print(f"Early stopping at epoch {epoch+1} with best validation accuracy {best_model_accuracy:.4f} at epoch {best_model_accuracy_at_epoch+1}")
-        break
-
-    print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {avg_loss:.4f}, validation accuracy: {accuracy}')
-
-
-# evaluate on test set
-model.load_state_dict(best_model)
-model.eval()
-with torch.no_grad():
-    total_loss = 0
-    preds = []
-    labels_full = []
-    for images, labels in test_dataloader:
-        images = images.to(device)
-        labels = labels.to(device)
-        
-        outputs = model(images)
-        preds.extend(outputs.argmax(dim=1).cpu().numpy())
-        labels_full.extend(labels.cpu().numpy())
-
-    preds = np.array(preds)
-    labels_full = np.array(labels_full)
-    test_accuracy = (preds == labels_full).mean()
-    print(f'Test accuracy: {test_accuracy:.4f}')
+    torch.save(model.state_dict(), 'training/current_model.pt')
+    torch.save(best_model_state, 'training/best_model.pt')
+    metadata = {
+        'best_accuracy': best_accuracy,
+        'best_accuracy_epoch': best_accuracy_epoch,
+        'last_epoch': e
+    }
+    with open('training/training_metadata.json', 'w') as f:
+        json.dump(metadata, f)
