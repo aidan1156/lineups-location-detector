@@ -23,6 +23,7 @@ transform = transforms.Compose(
             transforms.RandomAffine(
                 translate=(0.1, 0.1),
                 scale=(1, 1.2),
+                degrees=(-0.1, 0.1),
                 interpolation=transforms.InterpolationMode.BILINEAR
             ),
             transforms.Resize(256),
