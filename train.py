@@ -108,6 +108,10 @@ model = Resnet(num_classes)
 optimizer = optim.Adamax(model.parameters(), lr=0.001, weight_decay=1e-4)
 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max_epochs, eta_min=1e-6)
 
+best_accuracy = 0
+best_accuracy_epoch = -1
+best_model_state = None
+
 model = model.to(device=device)  # move the model parameters to CPU/GPU
 for e in range(max_epochs):
     # if no improvement in 10 consecutive epochs stop training
