@@ -6,6 +6,7 @@ import shutil
 import random
 from pathlib import Path
 
+random.seed(42)
 
 data = pd.read_csv('dataset/lineups-in-game-callout.csv')
 
@@ -47,7 +48,7 @@ for dataset in ['train', 'test', 'val']:
                 if callout_folder.exists() and len(list(callout_folder.glob('*.webp'))) > 0:
                     # move the first image to train
                     img_path = list(callout_folder.glob('*.webp'))[0]
-                    dst = Path(f'text-dataset/train/{callout}/{img_path.name}')
+                    dst = Path(f'text-dataset/{dataset}/{callout}/{img_path.name}')
                     dst.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.move(img_path, dst)
+                    shutil.copy(img_path, dst)
                     break
