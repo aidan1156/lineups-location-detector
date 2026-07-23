@@ -26,8 +26,8 @@ transform = transforms.Compose(
                 degrees=(-0.1, 0.1),
                 interpolation=transforms.InterpolationMode.BILINEAR
             ),
-            transforms.Resize(256),
-            transforms.CenterCrop(256),
+            transforms.Resize(64),
+            transforms.CenterCrop((130, 64)),
             transforms.ToTensor(),
         ]
     )
