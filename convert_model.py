@@ -31,7 +31,7 @@ model=Resnet(num_classes = len(test_dataset.classes)).to(dev)
 state_dict=torch.load('training/best_model.pt', map_location=dev)
 model.load_state_dict(state_dict)
 model.eval()
-dummy_input = torch.randn(1, 3, 256, 256)
+dummy_input = torch.randn(1, 3, 64, 130)
 torch.onnx.export(
 	model,
 	dummy_input,

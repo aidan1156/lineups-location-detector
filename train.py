@@ -23,7 +23,7 @@ transform = transforms.Compose(
                 interpolation=transforms.InterpolationMode.BILINEAR
             ),
             transforms.Resize(64),
-            transforms.CenterCrop((130, 64)),
+            transforms.CenterCrop((64, 130)),
             transforms.ToTensor(),
         ]
     )
