@@ -1,15 +1,11 @@
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.utils.data import WeightedRandomSampler
-from torch.optim.lr_scheduler import LinearLR, CosineAnnealingWarmRestarts, SequentialLR
 from torchvision import datasets, transforms
 from torchvision.utils import save_image, make_grid
 #other
-import matplotlib.pyplot as plt
-import numpy as np
 import copy
 import json
 import os
@@ -76,7 +72,7 @@ def check_accuracy(loader: DataLoader, model: Resnet):
 
     with torch.no_grad():
         for x, y in loader:
-            x = x.to(device=device, dtype=torch.dtype)
+            x = x.to(device=device, dtype=dtype)
             y = y.to(device=device, dtype=torch.long)
 
             scores = model(x)
@@ -98,6 +94,7 @@ loader_test = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_
 
 
 if torch.cuda.is_available():
+    print("Training on GPU")
     device = torch.device('cuda:0')
 else:
     device = torch.device('cpu')
@@ -149,6 +146,8 @@ for e in range(max_epochs):
         best_accuracy_epoch = e
         best_model_state = copy.deepcopy(model.state_dict())
 
+    if not os.path.exists('training'):
+        os.makedirs('training')
     torch.save(model.state_dict(), 'training/current_model.pt')
     torch.save(best_model_state, 'training/best_model.pt')
     metadata = {
