@@ -1,5 +1,5 @@
 """
-Take each image in the dataset and use gemini to label it with an in game callout
+Send a batch of images to Gemini for labeling. 
 """
 
 import glob

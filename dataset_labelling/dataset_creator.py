@@ -1,5 +1,5 @@
 """
-Convert the raw 
+Split the dataset into train, test, and val folders. Each folder will have subfolders for each callout. 
 """
 import pandas as pd
 import shutil

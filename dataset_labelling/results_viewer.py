@@ -1,3 +1,7 @@
+"""
+tmp python script to view the results of a batch labeling job.
+"""
+
 import pygame
 import json
 import os

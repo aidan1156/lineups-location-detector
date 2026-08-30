@@ -1,3 +1,7 @@
+"""
+Read the result of a batch job from the Gemini API and save it to a JSONL file. Then, convert the JSONL results into a CSV file with the required format.
+"""
+
 import json
 from google import genai
 from google.genai import types
