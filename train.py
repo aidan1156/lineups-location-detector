@@ -37,18 +37,27 @@ test_dataset = datasets.ImageFolder(test_path, transform=transform)
 val_dataset = datasets.ImageFolder(val_path, transform=transform)
 
 train_targets = torch.tensor(train_dataset.targets)
-# Get class counts from these specific targets
-# Use torch.unique to count occurrences of each class in the training split
-classes, class_counts = torch.unique(train_targets, return_counts=True)
-class_weights = 1. / class_counts.float()
+# Count occurrences of every class in the training split. bincount with an
+# explicit minlength keeps the counts aligned with the ImageFolder class ids
+# even if a class ends up with no images in this split.
+class_counts = torch.bincount(train_targets, minlength=len(train_dataset.classes))
+# Sample each class with equal probability regardless of how many images it has
+class_weights = 1. / class_counts.clamp(min=1).float()
 # Map the weights to every sample in the training subset
 sample_weights = class_weights[train_targets]
 
+# Draw as many samples per epoch as a perfectly balanced dataset would hold:
+# every class gets roughly as many draws as the largest class. This upsamples
+# the rare classes (with repeats) instead of throwing away the common ones.
+samples_per_epoch = int(class_counts.max().item()) * len(train_dataset.classes)
+
 train_sampler = WeightedRandomSampler(
     weights=sample_weights,
-    num_samples=len(sample_weights),
+    num_samples=samples_per_epoch,
     replacement=True
 )
+print(f'Balanced epoch: {samples_per_epoch} samples drawn from {len(train_dataset)} images '
+      f'({len(train_dataset.classes)} classes x {int(class_counts.max().item())})')
 print(len(train_dataset), len(val_dataset), len(test_dataset))
 
 def get_num_workers():
