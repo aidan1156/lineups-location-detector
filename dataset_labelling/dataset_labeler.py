@@ -20,7 +20,7 @@ client = genai.Client()
 
 model_name = "gemini-3.1-flash-lite"
 jsonl_filename = "image_labeling_batch.jsonl"
-labels_prompt = """Analyse this image, does it contain one of the pieces of text specified in the strict JSON schema? If it does output that label exactly as specified in the schema, if it does not contain any of the specified text output null."""
+labels_prompt = """Analyse this image, does it contain one of the pieces of text specified in the strict JSON schema? If it does output that label exactly as specified in the schema, if it does not contain any of the specified text output null. If there is text on screen which is not exactly one of the labels, including a label in a different language, output null."""
 
 def encode_image_base64(image_path: str) -> str:
     with open(image_path, "rb") as image_file:
