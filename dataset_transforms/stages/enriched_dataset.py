@@ -27,9 +27,6 @@ def create_enriched_dataset():
     with open(enriched_csv, 'a') as f:
         for image in images:
             try:
-                # Re-encode rather than copy: the labelling stage tells Gemini
-                # these are image/webp, so a png dropped in here has to
-                # actually become one, not just get a .webp name.
                 with Image.open(enrichment_data_path / image) as img:
                     current_id = next(ids)
                     img.save(dst_image_folder / f'{current_id}.webp', 'webp')
