@@ -50,5 +50,3 @@ The stages live in `dataset_transforms/stages/`:
 - `train.py` — trains it on 64×130 crops with light random affine jitter, Adamax + cosine annealing, and a weighted sampler that draws a balanced epoch so rare callouts aren't drowned out. Runs up to 100 epochs with early stopping after 10 without improvement, writing checkpoints and `training_metadata.json` to `training/`.
 - `test.py` — evaluates `training/best_model.pt` against the test split.
 - `convert_model.py` — exports the trained checkpoint to ONNX for use in the overlay.
-
-Note that the training scripts currently read the dataset from `text-dataset/{train,test,val}` while `dataset_label_receive.py` writes to `dataset/` — point one at the other before training.
