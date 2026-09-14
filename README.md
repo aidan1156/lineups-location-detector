@@ -4,13 +4,13 @@ Training scripts for a model which detects which in-game VALORANT callout a play
 
 ## Dataset
 
-The training images come from the lineups uploaded to **LineupsValorant**, spanning every map in `dataset_transforms/callout_conversion/`. Screenshots come in at whatever resolution the uploader plays at — nothing in the pipeline assumes a fixed size, and everything is stored as `.webp`.
+The training images come from the lineups uploaded to **LineupsValorant**. Screenshots come in at whatever resolution the uploader plays at — nothing in the pipeline assumes a fixed size, and everything is stored as `.webp`.
 
 The dataset is built in stages, each one written to `intermediate-datasets/` as an `images-<stage>/` folder plus a matching `lineups-<stage>.csv`:
 
 | Stage | Output | Contents |
 | --- | --- | --- |
-| `raw` | `images-raw/`, `lineups-raw.csv` | Full screenshots pulled from the uploaded lineups, with `id, map` rows. |
+| `raw` | `images-raw/`, `lineups-raw.csv` | Full screenshots pulled from the uploaded lineups, with `id, map, callout` rows. |
 | `enriched` | `images-enriched/`, `lineups-enriched.csv` | The raw set plus anything dropped into `enrichment-data/`, appended with fresh ids. |
 | `cropped` | `images-cropped/`, `lineups-cropped.csv` | The HUD callout-text crop of each image — what the model actually sees. |
 
