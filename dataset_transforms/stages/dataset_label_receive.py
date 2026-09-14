@@ -52,7 +52,7 @@ def _split_dataset(id_to_callout: dict[str, str]):
     val_indices = set(all_indicies[int(len(all_indicies) * 0.9):])
 
 
-    for id, callout in id_to_callout.values():
+    for id, callout in id_to_callout.items():
         if id in train_indices:
             folder = 'train'
         elif id in test_indices:

@@ -52,7 +52,7 @@ def evaluate(model: Resnet, loader: DataLoader, device: torch.device):
 
 def main():
 	checkpoint_path = Path("training/best_model.pt")
-	test_path = Path("text-dataset/test")
+	test_path = Path("dataset/test")
 
 	if not checkpoint_path.exists():
 		raise FileNotFoundError(f"Checkpoint not found: {checkpoint_path}")
@@ -60,10 +60,12 @@ def main():
 		raise FileNotFoundError(f"Test dataset not found: {test_path}")
 
 	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+	# Must match the shape train.py feeds the model; the random affine jitter it
+	# uses is training-only, so evaluation just resizes and crops.
 	transform = transforms.Compose(
 		[
-			transforms.Resize(256),
-			transforms.CenterCrop(256),
+			transforms.Resize(64),
+			transforms.CenterCrop((64, 130)),
 			transforms.ToTensor(),
 		]
 	)

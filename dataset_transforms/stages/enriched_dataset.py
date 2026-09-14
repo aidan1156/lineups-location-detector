@@ -18,15 +18,24 @@ def create_enriched_dataset():
     shutil.copytree(transform_dataset_path / f'images-{Dataset.RAW}', transform_dataset_path / f'images-{Dataset.ENRICHED}')
     shutil.copy(transform_dataset_path / f'lineups-{Dataset.RAW}.csv', transform_dataset_path / f'lineups-{Dataset.ENRICHED}.csv')
 
-    with open(transform_dataset_path / f'lineups-{Dataset.ENRICHED}.csv') as f:
-        contents = f.read().strip().splitlines()
-        start_id = int(contents[-1].split(',')[0])
+    enriched_csv = transform_dataset_path / f'lineups-{Dataset.ENRICHED}.csv'
+    with open(enriched_csv) as f:
+        contents = f.read()
+
+    rows = contents.strip().splitlines()
+    start_id = int(rows[-1].split(',')[0])
+    # Rows carry more than id,map (currently a trailing callout), so pad every
+    # appended row out to the header width to keep the columns lined up.
+    num_columns = max(len(rows[0].split(',')), 2)
 
     ids = itertools.count(start=start_id + 1)
     images = [f.name for f in enrichment_data_path.iterdir() if f.is_file()]
-    with open(transform_dataset_path / f'lineups-{Dataset.ENRICHED}.csv', 'a') as f:
+    with open(enriched_csv, 'a') as f:
+        if not contents.endswith('\n'):
+            f.write('\n')
         for image in images:
             current_id = next(ids)
             shutil.copy(enrichment_data_path / image, dst_image_folder / f'{current_id}.webp')
             # enriched data is map agnostic, so just hoy it in as Ascent
-            f.write(f'{current_id},Ascent')
+            padding = [''] * (num_columns - 2)
+            f.write(','.join([str(current_id), 'Ascent'] + padding) + '\n')

@@ -28,9 +28,9 @@ transform = transforms.Compose(
         ]
     )
 
-train_path = 'text-dataset/train'
-test_path = 'text-dataset/test'
-val_path = 'text-dataset/val'
+train_path = 'dataset/train'
+test_path = 'dataset/test'
+val_path = 'dataset/val'
 
 train_dataset = datasets.ImageFolder(train_path, transform=transform)
 test_dataset = datasets.ImageFolder(test_path, transform=transform)

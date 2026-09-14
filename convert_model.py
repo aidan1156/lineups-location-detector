@@ -23,7 +23,7 @@ def get_num_workers():
     num_workers = min(8, suggested_workers)
     return num_workers
 
-test_dataset = datasets.ImageFolder('text-dataset/test')
+test_dataset = datasets.ImageFolder('dataset/test')
 loader_test = DataLoader(test_dataset, batch_size=16, shuffle=True, num_workers=get_num_workers())
 
 
