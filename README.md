@@ -47,7 +47,11 @@ The stages live in `dataset_transforms/stages/`:
 
 ## Training
 
-- `model.py` — a small custom ResNet (a 7×7 stem then four 2-block stages, 64→512 channels).
-- `train.py` — trains it on 64×130 crops with light random affine jitter, Adamax + cosine annealing, and a weighted sampler that draws a balanced epoch so rare callouts aren't drowned out. Runs up to 100 epochs with early stopping after 10 without improvement, writing checkpoints and `training_metadata.json` to `training/`.
-- `test.py` — evaluates `training/best_model.pt` against the test split.
-- `convert_model.py` — exports the trained checkpoint to ONNX for use in the overlay.
+The training scripts live in `training/`, and everything they produce — checkpoints, ONNX exports, metadata — goes in `training/model/`.
+
+- `training/model.py` — a small custom ResNet (a 7×7 stem then four 2-block stages, 64→512 channels).
+- `training/train.py` — trains it on 64×130 crops with light random affine jitter, Adamax + cosine annealing, and a weighted sampler that draws a balanced epoch so rare callouts aren't drowned out. Runs up to 100 epochs with early stopping after 10 without improvement, writing checkpoints and `training_metadata.json` to `training/model/`.
+- `training/test.py` — evaluates `training/model/best_model.pt` against the test split.
+- `training/convert_model.py` — exports the trained checkpoint to ONNX for use in the overlay.
+
+Run them from the repo root (`python training/train.py`) — the dataset and checkpoint paths are all relative to it.

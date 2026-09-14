@@ -155,14 +155,14 @@ for e in range(max_epochs):
         best_accuracy_epoch = e
         best_model_state = copy.deepcopy(model.state_dict())
 
-    if not os.path.exists('training'):
-        os.makedirs('training')
-    torch.save(model.state_dict(), 'training/current_model.pt')
-    torch.save(best_model_state, 'training/best_model.pt')
+    if not os.path.exists('training/model'):
+        os.makedirs('training/model')
+    torch.save(model.state_dict(), 'training/model/current_model.pt')
+    torch.save(best_model_state, 'training/model/best_model.pt')
     metadata = {
         'best_accuracy': best_accuracy,
         'best_accuracy_epoch': best_accuracy_epoch,
         'last_epoch': e
     }
-    with open('training/training_metadata.json', 'w') as f:
+    with open('training/model/training_metadata.json', 'w') as f:
         json.dump(metadata, f)

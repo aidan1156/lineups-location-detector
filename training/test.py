@@ -51,7 +51,7 @@ def evaluate(model: Resnet, loader: DataLoader, device: torch.device):
 
 
 def main():
-	checkpoint_path = Path("training/best_model.pt")
+	checkpoint_path = Path("training/model/best_model.pt")
 	test_path = Path("dataset/test")
 
 	if not checkpoint_path.exists():

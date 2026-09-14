@@ -28,14 +28,14 @@ loader_test = DataLoader(test_dataset, batch_size=16, shuffle=True, num_workers=
 
 
 model=Resnet(num_classes = len(test_dataset.classes)).to(dev)
-state_dict=torch.load('training/best_model.pt', map_location=dev)
+state_dict=torch.load('training/model/best_model.pt', map_location=dev)
 model.load_state_dict(state_dict)
 model.eval()
 dummy_input = torch.randn(1, 3, 64, 130)
 torch.onnx.export(
 	model,
 	dummy_input,
-	'training/best_model.onnx',
+	'training/model/best_model.onnx',
 	export_params=True,
 	opset_version=14,
 	do_constant_folding=True,
