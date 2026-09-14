@@ -20,15 +20,11 @@ def create_enriched_dataset():
 
     enriched_csv = transform_dataset_path / f'lineups-{Dataset.ENRICHED}.csv'
     with open(enriched_csv) as f:
-        contents = f.read()
-
-    start_id = int(contents.strip().splitlines()[-1].split(',')[0])
+        start_id = int(f.read().strip().splitlines()[-1].split(',')[0])
 
     ids = itertools.count(start=start_id + 1)
     images = [f.name for f in enrichment_data_path.iterdir() if f.is_file()]
     with open(enriched_csv, 'a') as f:
-        if not contents.endswith('\n'):
-            f.write('\n')
         for image in images:
             current_id = next(ids)
             shutil.copy(enrichment_data_path / image, dst_image_folder / f'{current_id}.webp')
