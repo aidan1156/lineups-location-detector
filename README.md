@@ -15,7 +15,7 @@ The dataset is built in stages. The first three write to `intermediate-datasets/
 | `cropped` | `images-cropped/`, `lineups-cropped.csv` | The HUD callout-text crop of each image — what the model actually sees. |
 | labelling | `dataset/<split>/<callout>/` | Gemini reads the callout text off each crop against that map's list of callouts. Results are split 80/10/10 and filed under the callout it read; crops it couldn't match any callout to land under `None`. |
 
-`intermediate-datasets/`, `dataset/` and the `hidden/` folder holding the batch job state are all gitignored, so only the scripts live here.
+`intermediate-datasets/`, `dataset/` and the `hidden/` folder holding the batch job id are all gitignored, so only the scripts live here.
 
 The crop is taken as a **proportion** of each image rather than a fixed pixel box: horizontally from 8% to 15% of the width, vertically from the top edge down to 6% of the height. On a 1920×1080 screenshot that works out to roughly 134×65 px, but a 2560×1440 or ultrawide screenshot crops to the same region of the HUD at its own size. Images are only resized to a fixed shape at training time, where the transform pipeline scales them to 64 px tall and centre-crops to 64×130.
 
