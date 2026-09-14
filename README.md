@@ -4,9 +4,19 @@ Training scripts for a model which detects which in-game VALORANT callout a play
 
 ## Dataset
 
-The training images come from the lineups uploaded to **LineupsValorant** — ~11.8k screenshots spanning every map in `dataset_labelling/callout_conversion/`. Each one is stored twice: the full screenshot in `dataset/images-og/` (1000×562) and the HUD callout-text crop in `dataset/images/` (~135×64), which is what the model actually sees.
+The training images come from the lineups uploaded to **LineupsValorant**. Screenshots come in at whatever resolution the uploader plays at — nothing in the pipeline assumes a fixed size, and everything is stored as `.webp`.
 
-`dataset/lineups-full-image.csv` holds the source `id, map, callout` rows, and `dataset/lineups-in-game-callout.csv` holds the `id, prediction` labels produced by the Gemini pass below. The `dataset/` folder is gitignored, so only the scripts live here.
+The dataset is built in stages, each one written to `intermediate-datasets/` as an `images-<stage>/` folder plus a matching `lineups-<stage>.csv`:
+
+| Stage | Output | Contents |
+| --- | --- | --- |
+| `raw` | `images-raw/`, `lineups-raw.csv` | Full screenshots pulled from the uploaded lineups, with `id, map, callout` rows. |
+| `enriched` | `images-enriched/`, `lineups-enriched.csv` | The raw set plus anything dropped into `enrichment-data/`, appended with fresh ids. |
+| `cropped` | `images-cropped/`, `lineups-cropped.csv` | The HUD callout-text crop of each image — what the model actually sees. |
+
+The labelled, split dataset then lands in `dataset/<split>/<callout>/`. Both `intermediate-datasets/` and `dataset/` are gitignored, so only the scripts live here.
+
+The crop is taken as a **proportion** of each image rather than a fixed pixel box: horizontally from 8% to 15% of the width, vertically from the top edge down to 6% of the height. On a 1920×1080 screenshot that works out to roughly 134×65 px, but a 2560×1440 or ultrawide screenshot crops to the same region of the HUD at its own size. Images are only resized to a fixed shape at training time, where the transform pipeline scales them to 64 px tall and centre-crops to 64×130.
 
 ## Approach
 
@@ -15,15 +25,28 @@ My first attempt was a plain ResNet taking the **whole screen** as input. It did
 - Within a given callout, almost every photo framed the same landmark. Photos taken in that callout but pointed somewhere else had nothing in common with the training images and failed.
 - Photos taken in one callout often contained a landmark belonging to a *different* callout, which tricked the classifier into predicting the wrong one.
 
-The current version sidesteps this by not looking at the scene at all. It classifies a small fixed crop of the HUD region where VALORANT prints the location text (~135×64 px), so the input is essentially the callout text itself rather than the surrounding geometry.
+The current version sidesteps this by not looking at the scene at all. It classifies the small region of the HUD where VALORANT prints the location text, so the input is essentially the callout text itself rather than the surrounding geometry.
 
 ## Pipeline
 
-1. `dataset_labelling/dataset_labeler.py` — sends batches of cropped images to the Gemini API, which reads the callout text and labels each one against a per-map enum.
-2. `dataset_labelling/read_result.py` — pulls the finished batch job back down and converts the JSONL results into a CSV.
-3. `dataset_labelling/results_viewer.py` — pygame viewer for spot-checking labels.
-4. `dataset_labelling/dataset_creator.py` — splits the labelled data 80/10/10 into `text-dataset/{train,test,val}/<callout>/`.
-5. `train.py` / `model.py` — trains a small custom ResNet on 64×130 crops, with a weighted sampler to handle callout imbalance.
-6. `convert_model.py` — exports the trained checkpoint to ONNX for use in the overlay.
+`dataset_transforms/main.py` drives the whole thing. Because the labelling step is a Gemini *batch* job that takes a while to come back, the run is split in two by `hidden/current_job_id.txt`:
 
-`dataset_labelling/callout_conversion/` maps the raw in-game callout text to LineupsValorant's own callout names.
+- **No job file** — rebuild the dataset from scratch (raw → enriched → cropped), submit the labelling batch, and record the job id.
+- **Job file present** — pull that batch's results down and build the final split dataset.
+
+The stages live in `dataset_transforms/stages/`:
+
+1. `hidden_raw_dataset.py` — fetches the uploaded lineups into the `raw` stage. Gitignored (`hidden_*`), so it isn't in this repo.
+2. `enriched_dataset.py` — copies the raw stage forward and appends the extra images sitting in `enrichment-data/`. These are map-agnostic, so they're just filed under Ascent.
+3. `cropped_dataset.py` — crops every image to the HUD callout-text region described above, skipping anything that fails to open.
+4. `dataset_label_send.py` — base64s the cropped images into a JSONL batch request and submits it to the Gemini API. Each request carries a structured-output schema whose enum is that map's callout list, so the model either returns one of the exact callout strings or `null`. Only maps with a finished schema are included — currently Ascent and Bind.
+5. `dataset_label_receive.py` — downloads the finished batch, parses the predictions, and splits them 80/10/10 into `dataset/{train,test,val}/<callout>/`. Images the labeller returned `null` for end up under a `None` class. A final pass copies an image into any split/callout combination that would otherwise be empty, so no class disappears from a split.
+
+`dataset_transforms/callout_conversion/<Map>.json` maps each raw in-game callout string (the key, and what Gemini is asked to read) to the LineupsValorant callout names it corresponds to (the value, a list — one in-game region can cover several of our callouts).
+
+## Training
+
+- `model.py` — a small custom ResNet (a 7×7 stem then four 2-block stages, 64→512 channels).
+- `train.py` — trains it on 64×130 crops with light random affine jitter, Adamax + cosine annealing, and a weighted sampler that draws a balanced epoch so rare callouts aren't drowned out. Runs up to 100 epochs with early stopping after 10 without improvement, writing checkpoints and `training_metadata.json` to `training/`.
+- `test.py` — evaluates `training/best_model.pt` against the test split.
+- `convert_model.py` — exports the trained checkpoint to ONNX for use in the overlay.
