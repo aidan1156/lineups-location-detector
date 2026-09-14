@@ -6,15 +6,16 @@ Training scripts for a model which detects which in-game VALORANT callout a play
 
 The training images come from the lineups uploaded to **LineupsValorant**. Screenshots come in at whatever resolution the uploader plays at — nothing in the pipeline assumes a fixed size, and everything is stored as `.webp`.
 
-The dataset is built in stages, each one written to `intermediate-datasets/` as an `images-<stage>/` folder plus a matching `lineups-<stage>.csv`:
+The dataset is built in stages. The first three write to `intermediate-datasets/` as an `images-<stage>/` folder plus a matching `lineups-<stage>.csv`; the labelling stage turns the last of those into the dataset the model trains on:
 
 | Stage | Output | Contents |
 | --- | --- | --- |
 | `raw` | `images-raw/`, `lineups-raw.csv` | Full screenshots pulled from the uploaded lineups, with `id, map, callout` rows. |
 | `enriched` | `images-enriched/`, `lineups-enriched.csv` | The raw set plus anything dropped into `enrichment-data/`, appended with fresh ids. |
 | `cropped` | `images-cropped/`, `lineups-cropped.csv` | The HUD callout-text crop of each image — what the model actually sees. |
+| labelling | `dataset/<split>/<callout>/` | Gemini reads the callout text off each crop against that map's list of callouts. Results are split 80/10/10 and filed under the callout it read; crops it couldn't match any callout to land under `None`. |
 
-The labelled, split dataset then lands in `dataset/<split>/<callout>/`. Both `intermediate-datasets/` and `dataset/` are gitignored, so only the scripts live here.
+`intermediate-datasets/`, `dataset/` and the `hidden/` folder holding the batch job id are all gitignored, so only the scripts live here.
 
 The crop is taken as a **proportion** of each image rather than a fixed pixel box: horizontally from 8% to 15% of the width, vertically from the top edge down to 6% of the height. On a 1920×1080 screenshot that works out to roughly 134×65 px, but a 2560×1440 or ultrawide screenshot crops to the same region of the HUD at its own size. Images are only resized to a fixed shape at training time, where the transform pipeline scales them to 64 px tall and centre-crops to 64×130.
 
