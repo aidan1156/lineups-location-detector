@@ -14,10 +14,11 @@ def main():
         create_raw_dataset()
         create_enriched_dataset()
         create_cropped_dataset()
-        submit_labelling_batch()
+        batch_job = submit_labelling_batch()
 
-        with open("hidden/current_job_id.txt", "w") as f:
-            f.write(f"{batch_job}")
+        batch_job_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(batch_job_path, "w") as f:
+            f.write(batch_job)
     else:
         with open(batch_job_path) as f:
             batch_job = f.read().strip()
