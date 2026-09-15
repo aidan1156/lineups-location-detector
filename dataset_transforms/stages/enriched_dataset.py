@@ -26,7 +26,13 @@ def create_enriched_dataset():
     images = [f.name for f in enrichment_data_path.iterdir() if f.is_file()]
     with open(enriched_csv, 'a') as f:
         for image in images:
-            current_id = next(ids)
-            shutil.copy(enrichment_data_path / image, dst_image_folder / f'{current_id}.webp')
+            try:
+                with Image.open(enrichment_data_path / image) as img:
+                    current_id = next(ids)
+                    img.save(dst_image_folder / f'{current_id}.webp', 'webp')
+            except Exception as e:
+                print(f"Failed to process enrichment image {image}, skipping: {e}")
+                continue
+
             # enriched data is map agnostic, so just hoy it in as Ascent
             f.write(f'{current_id},Ascent,A Site\n')
