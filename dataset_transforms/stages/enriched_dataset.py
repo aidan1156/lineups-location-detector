@@ -3,7 +3,7 @@ import pandas as pd
 import shutil
 from pathlib import Path
 import itertools
-from constants import Dataset, transform_dataset_path
+from dataset_transforms.utils import Dataset, make_directory_writable, transform_dataset_path
 
 enrichment_data_path = Path("enrichment-data")
 
@@ -13,9 +13,11 @@ def create_enriched_dataset():
         if input("Enriched dataset already exists, do you want to overwrite the existing dataset (Y/n)?: ") != 'Y':
             print("exiting...")
             exit(0)
+        make_directory_writable(dst_image_folder)
         shutil.rmtree(dst_image_folder)
 
     shutil.copytree(transform_dataset_path / f'images-{Dataset.RAW}', transform_dataset_path / f'images-{Dataset.ENRICHED}')
+    make_directory_writable(dst_image_folder)
     shutil.copy(transform_dataset_path / f'lineups-{Dataset.RAW}.csv', transform_dataset_path / f'lineups-{Dataset.ENRICHED}.csv')
 
     enriched_csv = transform_dataset_path / f'lineups-{Dataset.ENRICHED}.csv'

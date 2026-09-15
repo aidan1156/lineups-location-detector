@@ -1,7 +1,7 @@
 from PIL import Image
 import pandas as pd
 import shutil
-from constants import Dataset, transform_dataset_path
+from dataset_transforms.utils import Dataset, make_directory_writable, transform_dataset_path
 
 
 def create_cropped_dataset():
@@ -13,9 +13,11 @@ def create_cropped_dataset():
         if input("Cropped dataset already exists, do you want to overwrite the existing dataset (Y/n)?: ") != 'Y':
             print("exiting...")
             exit(0)
+        make_directory_writable(dst_folder)
         shutil.rmtree(dst_folder)
 
     dst_folder.mkdir()
+    make_directory_writable(dst_folder)
 
     with open(transform_dataset_path / f"lineups-{Dataset.CROPPED}.csv", "w") as f:
         f.write("id,map\n")
