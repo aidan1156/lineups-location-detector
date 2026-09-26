@@ -1,3 +1,23 @@
 {
-    "LMAO": ["LMAO"]
+    "Defender Side Spawn": ["Defenders"],
+    "A Tower": ["A Heaven"],
+    "A Site": ["A Site"],
+    "A Link": ["A Link"],
+    "A Sewer": ["A Short"],
+    "A Long": ["A Long"],
+    "A Lobby": ["A Lobby"],
+    "A Garden": ["A Lobby"],
+    "B Back": ["Backsite B"],
+    "B Site": ["B Site"],
+    "Mid Courtyard": ["Mid Courtyard"],
+    "Mid Doors": ["Mid Courtyard"],
+    "Mid Window": ["Mid Window"],
+    "C Link": ["C link"],
+    "C Site": ["C Site"],
+    "C Window": ["C Window"],
+    "C Garage": ["C Garage"],
+    "C Cubby": ["C Cubby"],
+    "C Long": ["C Long"],
+    "C Lobby": ["C Lobby"],
+    "Attacker Side Spawn": ["Attackers"]
 }

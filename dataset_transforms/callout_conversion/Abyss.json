@@ -1,3 +1,25 @@
 {
-    "LMAO": ["LMAO"]
+    "Defender Side Spawn": ["Attackers"],
+    "A Secret": ["A Secret"],
+    "A Security": ["A Security"],
+    "A Link": ["A Link"],
+    "A Site": ["A Site"],
+    "A Bridge": ["A Bridge"],
+    "A Tower": ["A Tower"],
+    "A Vent": ["A Vent"],
+    "A Main": ["A Main"],
+    "A Lobby": ["A Lobby"],
+    "Mid Top": ["Mid Top"],
+    "Mid Library": ["Mid Library"],
+    "Mid Catwalk": ["Mid Catwalk"],
+    "Mid Bottom": ["Mid Bottom"],
+    "Mid Bend": ["Mid Bend"],
+    "B Tower": ["B Tower"],
+    "B Link": ["B Link"],
+    "B Site": ["B Site"],
+    "B Danger": ["B Danger"],
+    "B Main": ["B Main"],
+    "B Nest": ["B Nest"],
+    "B Lobby": ["B Lobby"],
+    "Attacker Side Spawn": ["Attackers"]
 }

@@ -1,3 +1,23 @@
 {
-    "LMAO": ["LMAO"]
+    "Defender Side Spawn": ["Defender Side Spawn"],
+    "A Crane": ["A Crane"],
+    "A Elbow": ["A Elbow"],
+    "A Site": ["A Site"],
+    "A Pocket": ["A Pocket"],
+    "A Yard": ["A Yard"],
+    "A Link": ["A Link"],
+    "A Main": ["A Main"],
+    "A Lobby": ["A Lobby"],
+    "Mid Window": ["Mid Window"],
+    "Mid Top": ["Mid Top"],
+    "Mid Stairs": ["Mid Stairs"],
+    "Mid Bottom": ["Mid Bottom"],
+    "B Arch": ["B Arch"],
+    "B Tower": ["B Tower"],
+    "B Elbow": ["B Elbow"],
+    "B Site": ["B Site"],
+    "B Link": ["B Link"],
+    "B Main": ["B Main"],
+    "B Lobby": ["B Lobby"],
+    "Attacker Side Spawn": ["Attacker Side Spawn"]
 }
