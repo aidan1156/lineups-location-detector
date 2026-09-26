@@ -13,7 +13,7 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 from pathlib import Path
-from dataset_transforms.utils import Dataset, transform_dataset_path
+from utils import Dataset, transform_dataset_path
 
 load_dotenv()
 
@@ -45,11 +45,6 @@ def submit_labelling_batch() -> str:
     with open(jsonl_filename, "w") as f:
         lineups_df = pd.read_csv(transform_dataset_path / f'lineups-{Dataset.CROPPED}.csv')
         for _, row in lineups_df.iterrows():
-
-            # skip maps that don't have a schema properly defined yet
-            if row["map"] not in {"Ascent", "Bind"}:
-                continue
-
             try:
                 img_path = transform_dataset_path / f'images-{Dataset.CROPPED}' / f'{row["id"]}.webp'
                 map_callout = map_callouts[row["map"]]

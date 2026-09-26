@@ -1,7 +1,7 @@
 from PIL import Image
 import pandas as pd
 import shutil
-from dataset_transforms.utils import Dataset, make_directory_writable, transform_dataset_path
+from utils import Dataset, make_directory_writable, transform_dataset_path
 
 
 def create_cropped_dataset():

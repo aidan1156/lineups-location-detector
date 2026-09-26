@@ -5,7 +5,7 @@ from google.genai import types
 from dotenv import load_dotenv
 import random
 from pathlib import Path
-from dataset_transforms.utils import Dataset, transform_dataset_path, dataset_path
+from utils import Dataset, transform_dataset_path, dataset_path
 
 
 load_dotenv()
