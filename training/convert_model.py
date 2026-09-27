@@ -53,12 +53,13 @@ print('Success!')
 callouts = set()
 for path in glob.glob('dataset_transforms/callout_conversion/*.json'):
 	with open(path, 'r') as f:
-		for values in json.load(f).values():
-			callouts.update(values)
+		for value in json.load(f).keys():
+			callouts.add(value)
 
 with open('training/model/callouts.csv', 'w', newline='') as f:
 	writer = csv.writer(f)
 	for callout in sorted(callouts, key=str.lower):
 		writer.writerow([callout])
+	writer.writerow(["None"])
 
 print(f'Wrote {len(callouts)} callouts to training/model/callouts.csv')
