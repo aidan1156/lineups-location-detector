@@ -21,7 +21,9 @@ def create_cropped_dataset():
 
     with open(transform_dataset_path / f"lineups-{Dataset.CROPPED}.csv", "w") as f:
         f.write("id,map\n")
-        for _, row in data.iterrows():
+        for i, row in data.iterrows():
+            if i % 100 == 0:
+                print(f"Processed {i+1}/{len(data)} images")
             src_path = transform_dataset_path / f"images-{Dataset.ENRICHED}" / f"{row["id"]}.webp"
 
             dst_path = dst_folder / f"{row["id"]}.webp"
