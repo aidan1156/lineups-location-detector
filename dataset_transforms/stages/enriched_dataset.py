@@ -25,7 +25,7 @@ def create_enriched_dataset():
         start_id = int(f.read().strip().splitlines()[-1].split(',')[0])
 
     ids = itertools.count(start=start_id + 1)
-    images = [f.name for f in enrichment_data_path.iterdir() if f.is_file()] * 3
+    images = [f.name for f in enrichment_data_path.iterdir() if f.is_file()]
     with open(enriched_csv, 'a') as f:
         for image in images:
             try:
