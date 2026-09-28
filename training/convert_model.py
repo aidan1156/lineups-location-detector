@@ -62,4 +62,4 @@ with open('training/model/callouts.csv', 'w', newline='') as f:
 		writer.writerow([callout])
 	writer.writerow(["None"])
 
-print(f'Wrote {len(callouts)} callouts to training/model/callouts.csv')
+print(f'Wrote {(len(callouts) + 1)} callouts to training/model/callouts.csv')
